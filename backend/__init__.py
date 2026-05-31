@@ -2,14 +2,14 @@
 Recipe RAG 后端模块包
 """
 
-from .graph_data_preparation import GraphDataPreparationModule
-from .milvus_index_construction import MilvusIndexConstructionModule
-from .hybrid_retrieval import HybridRetrievalModule
-from .generation_integration import GenerationIntegrationModule
+from .cuisine_graph_loader import CuisineGraphLoader
+from .vector_index_builder import VectorIndexBuilder
+from .blended_search_engine import BlendedSearchEngine
+from .answer_synthesizer import AnswerSynthesizer
 
 __all__ = [
-    'GraphDataPreparationModule',
-    'MilvusIndexConstructionModule', 
-    'HybridRetrievalModule',
-    'GenerationIntegrationModule'
-] 
+    'CuisineGraphLoader',
+    'VectorIndexBuilder',
+    'BlendedSearchEngine',
+    'AnswerSynthesizer',
+]

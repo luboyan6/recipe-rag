@@ -3,17 +3,17 @@
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessageCircle, Search, TrendingUp, Heart, ChefHat, Sparkles, X } from 'lucide-react'
-import { Button, Card, CardContent } from '@/components/ui'
-import { RecipeCard } from '@/components/recipe'
-import { useAppStore } from '@/store'
-import { useRecipes } from '@/hooks'
+import { ActionButton, SurfaceCard, CardContent } from '@/components/primitives/primitiveExports'
+import { DishPreviewCard } from '@/components/dish-gallery/galleryExports'
+import { useTasteAppState } from '@/store'
+import { useDishCatalog } from '@/hooks'
 import { Recipe } from '@/types'
 import { useRouter } from 'next/navigation'
 
 const HomePage: React.FC = () => {
   const router = useRouter()
-  const { createChatSession, ui, setSidebarOpen } = useAppStore()
-  const { getRecommendations } = useRecipes()
+  const { createChatSession, ui, setSidebarOpen } = useTasteAppState()
+  const { getRecommendations } = useDishCatalog()
   
   const [recommendations, setRecommendations] = useState<Recipe[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -39,7 +39,7 @@ const HomePage: React.FC = () => {
   
   const handleStartChat = () => {
     const sessionId = createChatSession('有什么推荐？')
-    window.location.href = `/chat?session=${sessionId}`
+    window.location.href = `/dialogue?session=${sessionId}`
   }
   
   const quickQuestions = [
@@ -100,13 +100,13 @@ const HomePage: React.FC = () => {
                       </>
                     )}
                   </div>
-                  <Button
+                  <ActionButton
                     variant="ghost"
                     size="sm"
                     onClick={handleCloseSidebar}
                   >
                     <X className="w-4 h-4" />
-                  </Button>
+                  </ActionButton>
                 </div>
               </div>
 
@@ -147,22 +147,22 @@ const HomePage: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <Button
+              <ActionButton
                 variant="ghost"
                 size="sm"
                 onClick={() => handleOpenSidebar('search')}
               >
                 <Search className="w-4 h-4 mr-2" />
                 搜索
-              </Button>
-              <Button
+              </ActionButton>
+              <ActionButton
                 variant="ghost"
                 size="sm"
                 onClick={() => handleOpenSidebar('favorites')}
               >
                 <Heart className="w-4 h-4 mr-2" />
                 收藏
-              </Button>
+              </ActionButton>
             </div>
           </div>
         </div>
@@ -209,7 +209,7 @@ const HomePage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <Button
+              <ActionButton
                 variant="primary"
                 size="lg"
                 onClick={handleStartChat}
@@ -217,7 +217,7 @@ const HomePage: React.FC = () => {
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 开始对话
-              </Button>
+              </ActionButton>
             </motion.div>
           </div>
         </motion.section>
@@ -241,19 +241,19 @@ const HomePage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 + index * 0.1 }}
               >
-                <Card
+                <SurfaceCard
                   variant="glass"
                   hover
                   onClick={() => {
                     const sessionId = createChatSession(question)
-                    window.location.href = `/chat?session=${sessionId}&q=${encodeURIComponent(question)}`
+                    window.location.href = `/dialogue?session=${sessionId}&q=${encodeURIComponent(question)}`
                   }}
                   className="cursor-pointer h-full flex items-center justify-center"
                 >
                   <div className="p-4 w-full text-center">
                     <p className="text-gray-700 leading-relaxed">{question}</p>
                   </div>
-                </Card>
+                </SurfaceCard>
               </motion.div>
             ))}
           </div>
@@ -272,13 +272,13 @@ const HomePage: React.FC = () => {
                 <Heart className="w-6 h-6 text-red-500 mr-2" />
                 为您推荐
               </h2>
-              <Button
+              <ActionButton
                 variant="ghost"
                 onClick={handleRefreshRecommendations}
                 disabled={isLoading}
               >
                 换一批
-              </Button>
+              </ActionButton>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -289,10 +289,10 @@ const HomePage: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.9 + index * 0.1 }}
                 >
-                  <RecipeCard
+                  <DishPreviewCard
                     recipe={recipe}
                     onSelect={(recipe) => {
-                      window.location.href = `/recipe/${recipe.id}`
+                      window.location.href = `/dish/${recipe.id}`
                     }}
                   />
                 </motion.div>

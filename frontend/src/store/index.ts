@@ -1,2 +1,1 @@
-// 状态管理导出
-export { useAppStore } from './useAppStore' 
+export { useTasteAppState } from './tasteAppState'

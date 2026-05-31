@@ -24,16 +24,16 @@ load_dotenv()
 
 from config import DEFAULT_CONFIG, GraphRAGConfig
 from backend import (
-    GraphDataPreparationModule,
-    MilvusIndexConstructionModule, 
-    GenerationIntegrationModule
+    CuisineGraphLoader,
+    VectorIndexBuilder,
+    AnswerSynthesizer
 )
-from backend.hybrid_retrieval import HybridRetrievalModule
-from backend.graph_rag_retrieval import GraphRAGRetrieval
-from backend.intelligent_query_router import IntelligentQueryRouter, QueryAnalysis
-from backend.session_cache_manager import SessionCacheManager
-from backend.web_service_handler import WebServiceHandler
-from backend.recipe_recommendation import RecipeRecommendationManager
+from backend.blended_search_engine import BlendedSearchEngine
+from backend.graph_aware_search import GraphAwareSearch
+from backend.query_dispatch_engine import QueryDispatchEngine, QueryAnalysis
+from backend.dialogue_memory_store import DialogueMemoryStore
+from backend.http_api_gateway import HttpApiGateway
+from backend.dish_suggestion_service import DishSuggestionService
 
 
 class AdvancedGraphRAGSystem:
@@ -58,7 +58,7 @@ class AdvancedGraphRAGSystem:
         
         # 检索引擎
         self.traditional_retrieval = None
-        self.graph_rag_retrieval = None
+        self.graph_search = None
         self.query_router = None
         
         # 系统状态
@@ -74,7 +74,7 @@ class AdvancedGraphRAGSystem:
         try:
             # 1. 数据准备模块
             print("初始化数据准备模块...")
-            self.data_module = GraphDataPreparationModule(
+            self.data_module = CuisineGraphLoader(
                 uri=self.config.neo4j_uri,
                 user=self.config.neo4j_user,
                 password=self.config.neo4j_password,
@@ -83,7 +83,7 @@ class AdvancedGraphRAGSystem:
             
             # 2. 向量索引模块
             print("初始化Milvus向量索引...")
-            self.index_module = MilvusIndexConstructionModule(
+            self.index_module = VectorIndexBuilder(
                 host=self.config.milvus_host,
                 port=self.config.milvus_port,
                 collection_name=self.config.milvus_collection_name,
@@ -93,7 +93,7 @@ class AdvancedGraphRAGSystem:
             
             # 3. 生成模块
             print("初始化生成模块...")
-            self.generation_module = GenerationIntegrationModule(
+            self.generation_module = AnswerSynthesizer(
                 model_name=self.config.llm_model,
                 temperature=self.config.temperature,
                 max_tokens=self.config.max_tokens
@@ -101,7 +101,7 @@ class AdvancedGraphRAGSystem:
             
             # 4. 传统混合检索模块
             print("初始化传统混合检索...")
-            self.traditional_retrieval = HybridRetrievalModule(
+            self.traditional_retrieval = BlendedSearchEngine(
                 config=self.config,
                 milvus_module=self.index_module,
                 data_module=self.data_module,
@@ -110,33 +110,33 @@ class AdvancedGraphRAGSystem:
             
             # 5. 图RAG检索模块
             print("初始化图RAG检索引擎...")
-            self.graph_rag_retrieval = GraphRAGRetrieval(
+            self.graph_search = GraphAwareSearch(
                 config=self.config,
                 llm_client=self.generation_module.client
             )
             
             # 6. 智能查询路由器
             print("初始化智能查询路由器...")
-            self.query_router = IntelligentQueryRouter(
+            self.query_router = QueryDispatchEngine(
                 traditional_retrieval=self.traditional_retrieval,
-                graph_rag_retrieval=self.graph_rag_retrieval,
+                graph_rag_retrieval=self.graph_search,
                 llm_client=self.generation_module.client,
                 config=self.config
             )
 
             # 7. 会话缓存管理器
             print("初始化会话缓存管理器...")
-            self.cache_manager = SessionCacheManager(
+            self.cache_manager = DialogueMemoryStore(
                 embedding_model=self.index_module.embeddings
             )
 
             # 8. 菜谱推荐管理器
             print("初始化菜谱推荐管理器...")
-            self.recipe_manager = RecipeRecommendationManager()
+            self.dish_service = DishSuggestionService()
 
-            # 9. Web服务处理器
-            print("初始化Web服务处理器...")
-            self.web_handler = WebServiceHandler(self)
+            # 9. HTTP API 网关
+            print("初始化 HTTP API 网关...")
+            self.api_gateway = HttpApiGateway(self)
 
             print("✅ 高级图RAG系统初始化完成！")
             
@@ -217,7 +217,7 @@ class AdvancedGraphRAGSystem:
         self.traditional_retrieval.initialize(chunks)
         
         # 初始化图RAG检索器
-        self.graph_rag_retrieval.initialize()
+        self.graph_search.initialize()
         
         self.system_ready = True
         print("✅ 检索引擎初始化完成！")
@@ -337,23 +337,25 @@ class AdvancedGraphRAGSystem:
             return
 
         try:
-            # 使用Web服务处理器设置Flask应用
-            app = self.web_handler.setup_flask_app()
+            # 使用 Web 服务处理器设置 FastAPI 应用
+            app = self.api_gateway.setup_fastapi_app()
             if not app:
-                print("❌ Flask应用初始化失败")
+                print("❌ FastAPI 应用初始化失败")
                 return
 
-            print("🚀 启动Web服务...")
-            print(f"📊 健康检查: http://localhost:8000/health")
-            print(f"💬 聊天API: http://localhost:8000/api/chat")
-            print(f"🌊 流式聊天: http://localhost:8000/api/chat/stream")
-            print(f"🍽️ 菜谱推荐: http://localhost:8000/api/recipes/recommendations")
-            print(f"📖 菜谱详情: http://localhost:8000/api/recipes/<recipe_id>")
-            print(f"📈 统计信息: http://localhost:8000/api/stats")
+            print("🚀 启动 Web 服务 (FastAPI + Uvicorn)...")
+            print(f"📊 健康检查: http://localhost:8000/api/health")
+            print(f"📚 API 文档:   http://localhost:8000/docs")
+            print(f"💬 聊天 API:  http://localhost:8000/api/chat")
+            print(f"🌊 流式聊天:  http://localhost:8000/api/chat/stream")
+            print(f"🍽️ 美食推荐:  http://localhost:8000/api/recipes/recommendations")
+            print(f"📖 美食详情:  http://localhost:8000/api/recipes/<recipe_id>")
+            print(f"📈 统计信息:  http://localhost:8000/api/stats")
             print("=" * 50)
 
-            # 启动Flask应用
-            app.run(host='0.0.0.0', port=8000, debug=False)
+            import uvicorn
+
+            uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
 
         except Exception as e:
             logger.error(f"Web服务启动失败: {e}")
@@ -365,8 +367,8 @@ class AdvancedGraphRAGSystem:
             self.data_module.close()
         if self.traditional_retrieval:
             self.traditional_retrieval.close()
-        if self.graph_rag_retrieval:
-            self.graph_rag_retrieval.close()
+        if self.graph_search:
+            self.graph_search.close()
         if self.index_module:
             self.index_module.close()
 

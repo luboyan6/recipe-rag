@@ -92,7 +92,7 @@ services:
       - MILVUS_HOST=milvus-standalone
       - MILVUS_PORT=19530
       - PYTHONPATH=/app
-      - FLASK_ENV=development
+      - APP_ENV=development
       - DEBUG=true
     volumes:
       - ./:/app
